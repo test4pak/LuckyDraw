@@ -13,6 +13,8 @@ import { Calendar, Users, Gift, Clock, CheckCircle2, AlertCircle } from "lucide-
 import Image from "next/image";
 import { useToast } from "@/hooks/use-toast";
 
+export const dynamic = 'force-dynamic';
+
 type Event = {
   id: string;
   title: string;

@@ -14,6 +14,8 @@ import { Calendar, Users, Trophy, Gift, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
+export const dynamic = 'force-dynamic';
+
 type User = {
   id: string;
   first_name: string | null;

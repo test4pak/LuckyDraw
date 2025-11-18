@@ -16,6 +16,8 @@ import { EditEventModal } from "@/components/admin/edit-event-modal";
 import { ManagePrizesModal } from "@/components/admin/manage-prizes-modal";
 import { AdminHeader } from "@/components/layout/admin-header";
 
+export const dynamic = 'force-dynamic';
+
 type Event = {
   id: string;
   title: string;

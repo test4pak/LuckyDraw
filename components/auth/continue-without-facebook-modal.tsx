@@ -802,19 +802,21 @@ export function ContinueWithoutFacebookModal({ isOpen, onClose }: ContinueWithou
                           Share this event with 3 of your WhatsApp contacts to complete your registration.
                         </p>
                       </div>
-                      <Button
-                        onClick={handleShareWhatsApp}
-                        disabled={isWhatsappButtonDisabled && whatsappShareCount === 1}
-                        size="lg"
-                        className="bg-green-500 hover:bg-green-600 text-white disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
-                      >
-                        <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-                        {isWhatsappButtonDisabled && whatsappShareCount === 1 && countdown > 0 ? (
-                          <>Share to WhatsApp ({countdown}s)</>
-                        ) : (
-                          <>Share to WhatsApp</>
-                        )}
-                      </Button>
+                      {whatsappShareCount < 2 && (
+                        <Button
+                          onClick={handleShareWhatsApp}
+                          disabled={isWhatsappButtonDisabled && whatsappShareCount === 1}
+                          size="lg"
+                          className="bg-green-500 hover:bg-green-600 text-white disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
+                        >
+                          <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                          {isWhatsappButtonDisabled && whatsappShareCount === 1 && countdown > 0 ? (
+                            <>Share to WhatsApp ({countdown}s)</>
+                          ) : (
+                            <>Share to WhatsApp</>
+                          )}
+                        </Button>
+                      )}
                       
                       {/* Show message about sharing requirement only after first click */}
                       {whatsappShareCount === 1 && (

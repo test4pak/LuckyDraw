@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { createClient } from "@/lib/supabase/client";
 import { formatDate } from "@/lib/utils";
 import { fetchAllRows, getAccurateCount } from "@/lib/supabase-helpers";
+import { fetchWithCache, CacheKeys, CacheTTL } from "@/lib/cached-fetch";
 import { Calendar, Users, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -41,47 +42,60 @@ export function EventsSection() {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const eventsData = await fetchAllRows(
-          supabase
-            .from("events")
-            .select("*, image_url")
-            .order("created_at", { ascending: false })
+        // Fetch events with caching
+        const eventsData = await fetchWithCache(
+          CacheKeys.events(),
+          async () => {
+            return await fetchAllRows(
+              supabase
+                .from("events")
+                .select("*, image_url")
+                .order("created_at", { ascending: false })
+            );
+          },
+          CacheTTL.MEDIUM
         );
 
-        // Get participant and prize counts for each event
+        // Get participant and prize counts for each event (cached per event)
         const eventsWithDetails = await Promise.all(
           (eventsData || []).map(async (event) => {
             try {
-              // Get counts using count queries
-              const [participantsResult, prizesResult] = await Promise.all([
-                supabase
-                  .from("participants")
-                  .select("id", { count: "exact", head: true })
-                  .eq("event_id", event.id),
-                supabase
-                  .from("prizes")
-                  .select("id", { count: "exact", head: true })
-                  .eq("event_id", event.id),
+              const [participantCount, prizeCount] = await Promise.all([
+                fetchWithCache(
+                  `event_${event.id}_participants`,
+                  async () => {
+                    const result = await supabase
+                      .from("participants")
+                      .select("id", { count: "exact", head: true })
+                      .eq("event_id", event.id);
+                    if (result.error || result.count === null) {
+                      const all = await fetchAllRows(
+                        supabase.from("participants").select("id").eq("event_id", event.id)
+                      );
+                      return all.length;
+                    }
+                    return result.count ?? 0;
+                  },
+                  CacheTTL.SHORT
+                ),
+                fetchWithCache(
+                  `event_${event.id}_prizes`,
+                  async () => {
+                    const result = await supabase
+                      .from("prizes")
+                      .select("id", { count: "exact", head: true })
+                      .eq("event_id", event.id);
+                    if (result.error || result.count === null) {
+                      const all = await fetchAllRows(
+                        supabase.from("prizes").select("id").eq("event_id", event.id)
+                      );
+                      return all.length;
+                    }
+                    return result.count ?? 0;
+                  },
+                  CacheTTL.SHORT
+                ),
               ]);
-
-              // If count is null or there's an error, fetch all rows and count
-              let participantCount = participantsResult.count ?? 0;
-              let prizeCount = prizesResult.count ?? 0;
-
-              // Fallback to fetching all rows if count is 0 but might be inaccurate
-              if (participantsResult.error || participantsResult.count === null) {
-                const allParticipants = await fetchAllRows(
-                  supabase.from("participants").select("id").eq("event_id", event.id)
-                );
-                participantCount = allParticipants.length;
-              }
-
-              if (prizesResult.error || prizesResult.count === null) {
-                const allPrizes = await fetchAllRows(
-                  supabase.from("prizes").select("id").eq("event_id", event.id)
-                );
-                prizeCount = allPrizes.length;
-              }
 
               return {
                 ...event,

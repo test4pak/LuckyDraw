@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Gift, Sparkles, Users, Trophy, CheckCircle2, ChevronLeft, ChevronRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { fetchAllRows, getAccurateCount } from "@/lib/supabase-helpers";
+import { fetchWithCache, CacheKeys, CacheTTL } from "@/lib/cached-fetch";
 import { Card } from "@/components/ui/card";
 import Image from "next/image";
 import { useState, useEffect } from "react";
@@ -60,53 +61,66 @@ export function Hero() {
       
       const supabase = createClient();
       try {
-        // Fetch running events with images
-        const { data: eventsData, error: eventsError } = await supabase
-          .from("events")
-          .select("id, title, description, image_url, status")
-          .eq("status", "running")
-          .not("image_url", "is", null)
-          .order("created_at", { ascending: false })
-          .limit(6);
+        // Fetch running events with images (cached)
+        const eventsData = await fetchWithCache(
+          CacheKeys.heroEvents(),
+          async () => {
+            const { data, error } = await supabase
+              .from("events")
+              .select("id, title, description, image_url, status")
+              .eq("status", "running")
+              .not("image_url", "is", null)
+              .order("created_at", { ascending: false })
+              .limit(6);
+            if (error) throw error;
+            return data || [];
+          },
+          CacheTTL.MEDIUM
+        );
 
-        if (eventsError) throw eventsError;
-
-        // Transform events to event cards with counts
+        // Transform events to event cards with counts (cached per event)
         if (eventsData && eventsData.length > 0) {
           const cardsWithCounts = await Promise.all(
             eventsData.map(async (event: { id: string; title: string; description: string | null; image_url: string | null; status: string }, index: number) => {
               const config = gradientConfigs[index % gradientConfigs.length];
               
-              // Get participant and prize counts for this event
-              const [participantsResult, prizesResult] = await Promise.all([
-                supabase
-                  .from("participants")
-                  .select("id", { count: "exact", head: true })
-                  .eq("event_id", event.id),
-                supabase
-                  .from("prizes")
-                  .select("id", { count: "exact", head: true })
-                  .eq("event_id", event.id),
+              // Get cached counts for this event
+              const [participantCount, prizeCount] = await Promise.all([
+                fetchWithCache(
+                  `event_${event.id}_participants`,
+                  async () => {
+                    const result = await supabase
+                      .from("participants")
+                      .select("id", { count: "exact", head: true })
+                      .eq("event_id", event.id);
+                    if (result.error || result.count === null) {
+                      const all = await fetchAllRows(
+                        supabase.from("participants").select("id").eq("event_id", event.id)
+                      );
+                      return all.length;
+                    }
+                    return result.count ?? 0;
+                  },
+                  CacheTTL.SHORT
+                ),
+                fetchWithCache(
+                  `event_${event.id}_prizes`,
+                  async () => {
+                    const result = await supabase
+                      .from("prizes")
+                      .select("id", { count: "exact", head: true })
+                      .eq("event_id", event.id);
+                    if (result.error || result.count === null) {
+                      const all = await fetchAllRows(
+                        supabase.from("prizes").select("id").eq("event_id", event.id)
+                      );
+                      return all.length;
+                    }
+                    return result.count ?? 0;
+                  },
+                  CacheTTL.SHORT
+                ),
               ]);
-
-              // If count is null or there's an error, fetch all rows and count
-              let participantCount = participantsResult.count ?? 0;
-              let prizeCount = prizesResult.count ?? 0;
-
-              // Fallback to fetching all rows if count query fails
-              if (participantsResult.error || participantsResult.count === null) {
-                const allParticipants = await fetchAllRows(
-                  supabase.from("participants").select("id").eq("event_id", event.id)
-                );
-                participantCount = allParticipants.length;
-              }
-
-              if (prizesResult.error || prizesResult.count === null) {
-                const allPrizes = await fetchAllRows(
-                  supabase.from("prizes").select("id").eq("event_id", event.id)
-                );
-                prizeCount = allPrizes.length;
-              }
 
               return {
                 id: event.id,
@@ -123,42 +137,34 @@ export function Hero() {
           setEventCards(cardsWithCounts);
         }
 
-        // Fetch stats
-        const [activeEventsResult, participantsResult] = await Promise.all([
-          supabase.from("events").select("id", { count: "exact", head: true }).eq("status", "running"),
-          supabase.from("participants").select("id", { count: "exact", head: true }),
-        ]);
+        // Fetch stats (cached)
+        const stats = await fetchWithCache(
+          CacheKeys.stats(),
+          async () => {
+            const [activeEventsResult, participantsResult, runningEvents] = await Promise.all([
+              supabase.from("events").select("id", { count: "exact", head: true }).eq("status", "running"),
+              supabase.from("participants").select("id", { count: "exact", head: true }),
+              fetchAllRows(supabase.from("events").select("id").eq("status", "running")),
+            ]);
 
-        // Get running event IDs first
-        const runningEvents = await fetchAllRows(
-          supabase
-            .from("events")
-            .select("id")
-            .eq("status", "running")
+            const runningEventIds = runningEvents.map((e: { id: string }) => e.id);
+            let totalPrizes = 0;
+            if (runningEventIds.length > 0) {
+              totalPrizes = await getAccurateCount(
+                supabase.from("prizes").select("id").in("event_id", runningEventIds)
+              );
+            }
+
+            return {
+              activeEvents: activeEventsResult.count ?? 0,
+              participants: participantsResult.count ?? 0,
+              totalPrizes,
+            };
+          },
+          CacheTTL.MEDIUM
         );
 
-        const runningEventIds = runningEvents?.map(e => e.id) || [];
-
-        // Count prizes only from running events
-        let totalPrizesCount = 0;
-        if (runningEventIds.length > 0) {
-          const { count: prizesCount } = await supabase
-            .from("prizes")
-            .select("id", { count: "exact", head: true })
-            .in("event_id", runningEventIds);
-          
-          totalPrizesCount = prizesCount ?? 0;
-        }
-
-        // Ensure counts are properly extracted
-        const activeEventsCount = activeEventsResult.count ?? 0;
-        const participantsCount = participantsResult.count ?? 0;
-
-        setStats({
-          activeEvents: activeEventsCount,
-          totalPrizes: totalPrizesCount,
-          participants: participantsCount,
-        });
+        setStats(stats);
       } catch (error) {
         // Error fetching hero data
       } finally {

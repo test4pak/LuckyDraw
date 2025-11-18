@@ -5,7 +5,7 @@ import { SupabaseClient } from "@supabase/supabase-js";
  * This ensures we get all rows regardless of the 1000 row default limit
  */
 export async function fetchAllRows<T = any>(
-  query: ReturnType<SupabaseClient["from"]>["select"]
+  query: any
 ): Promise<T[]> {
   const allRows: T[] = [];
   const pageSize = 1000;
@@ -38,7 +38,7 @@ export async function fetchAllRows<T = any>(
  * The query should already have .select() called on it
  */
 export async function getAccurateCount(
-  query: ReturnType<SupabaseClient["from"]>["select"]
+  query: any
 ): Promise<number> {
   try {
     // Use the count option on the existing select query

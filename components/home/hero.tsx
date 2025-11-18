@@ -258,8 +258,7 @@ export function Hero() {
                               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
                               <div className={`absolute inset-0 bg-gradient-to-br ${eventCards[currentIndex].gradientOverlay} to-transparent`} />
                               <div className="absolute bottom-0 left-0 right-0 p-6 text-white backdrop-blur-sm bg-gradient-to-t from-black/40 to-transparent">
-                                <h3 className="text-xl font-bold drop-shadow-lg mb-1">{eventCards[currentIndex].title}</h3>
-                                <p className="text-sm opacity-90 drop-shadow-md line-clamp-2 mb-3">{eventCards[currentIndex].subtitle}</p>
+                                <h3 className="text-xl font-bold drop-shadow-lg mb-3">{eventCards[currentIndex].title}</h3>
                                 
                                 {/* Prize and Participant Counts */}
                                 <div className="flex items-center gap-4 text-xs sm:text-sm">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, User, Mail, Phone, MapPin, Facebook, MessageCircle, CheckCircle2, ArrowRight, ArrowLeft, Loader2 } from "lucide-react";
@@ -36,11 +36,18 @@ export function ContinueWithoutFacebookModal({ isOpen, onClose }: ContinueWithou
   const [whatsappShareCount, setWhatsappShareCount] = useState(0);
   const [isWhatsappButtonDisabled, setIsWhatsappButtonDisabled] = useState(false);
   const [countdown, setCountdown] = useState(0);
+  const countdownIntervalRef = React.useRef<NodeJS.Timeout | null>(null);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    return () => setMounted(false);
+    return () => {
+      setMounted(false);
+      // Cleanup countdown interval on unmount
+      if (countdownIntervalRef.current) {
+        clearInterval(countdownIntervalRef.current);
+      }
+    };
   }, []);
   
   // Form fields
@@ -324,17 +331,25 @@ export function ContinueWithoutFacebookModal({ isOpen, onClose }: ContinueWithou
     setIsWhatsappButtonDisabled(true);
     setCountdown(30);
     
+    // Clear any existing interval
+    if (countdownIntervalRef.current) {
+      clearInterval(countdownIntervalRef.current);
+    }
+    
     // Countdown timer
     const interval = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {
           clearInterval(interval);
           setIsWhatsappButtonDisabled(false);
+          countdownIntervalRef.current = null;
           return 0;
         }
         return prev - 1;
       });
     }, 1000);
+    
+    countdownIntervalRef.current = interval;
     
     if (newCount < 2) {
       toast({
@@ -604,9 +619,13 @@ export function ContinueWithoutFacebookModal({ isOpen, onClose }: ContinueWithou
                           </label>
                           <input
                             type="tel"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
                             value={contactNo}
                             onChange={(e) => {
-                              setContactNo(e.target.value);
+                              // Only allow numbers
+                              const value = e.target.value.replace(/[^0-9]/g, '');
+                              setContactNo(value);
                               if (errors.contactNo) {
                                 setErrors({ ...errors, contactNo: "" });
                               }
@@ -774,7 +793,11 @@ export function ContinueWithoutFacebookModal({ isOpen, onClose }: ContinueWithou
                         className="bg-green-500 hover:bg-green-600 text-white disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
                       >
                         <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-                        Share to WhatsApp
+                        {isWhatsappButtonDisabled && countdown > 0 ? (
+                          <>Share to WhatsApp ({countdown}s)</>
+                        ) : (
+                          <>Share to WhatsApp</>
+                        )}
                       </Button>
                       
                       {/* Show message about sharing requirement only after first click */}

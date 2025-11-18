@@ -128,10 +128,10 @@ export function EventsSection() {
   }, [supabase]);
 
   const EventCard = ({ event }: { event: Event }) => (
-    <div>
-      <Card className="group h-full overflow-hidden border-2 border-border/50 bg-gradient-to-br from-card/95 via-card/85 to-card/70 backdrop-blur-2xl glass-dark">
+    <div className="h-full flex">
+      <Card className="group h-full flex flex-col overflow-hidden border-2 border-border/50 bg-gradient-to-br from-card/95 via-card/85 to-card/70 backdrop-blur-2xl glass-dark">
         {event.image_url && (
-          <div className="relative h-40 sm:h-48 w-full overflow-hidden bg-muted">
+          <div className="relative h-40 sm:h-48 w-full overflow-hidden bg-muted flex-shrink-0">
             <Image
               src={event.image_url}
               alt={event.title}
@@ -166,25 +166,30 @@ export function EventsSection() {
             )}
           </div>
         )}
-        <CardHeader className="p-4 sm:p-6">
+        <CardHeader className="p-4 sm:p-6 flex-shrink-0">
           <CardTitle className="line-clamp-2 text-base sm:text-lg">{event.title}</CardTitle>
           <CardDescription className="line-clamp-2">
             {event.description}
           </CardDescription>
         </CardHeader>
-        <CardContent className="p-4 sm:p-6 pt-0">
-          <div className="space-y-2 text-xs sm:text-sm">
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
-              <span>Ends: {formatDate(event.end_date)}</span>
+        <div className="flex-grow flex flex-col justify-end">
+          <CardContent className="p-4 sm:p-6 pt-0 flex-shrink-0">
+            <div className="space-y-3 text-xs sm:text-sm">
+              <div className="flex items-center gap-2 p-2.5 sm:p-3 rounded-lg bg-primary/10 border border-primary/20">
+                <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
+                <div className="flex flex-col">
+                  <span className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wide font-medium">Ends</span>
+                  <span className="text-sm sm:text-base font-semibold text-foreground">{formatDate(event.end_date)}</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Users className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span>{event.participant_count || 0} participants</span>
+              </div>
             </div>
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Users className="h-3 w-3 sm:h-4 sm:w-4" />
-              <span>{event.participant_count || 0} participants</span>
-            </div>
-          </div>
-        </CardContent>
-        <CardFooter className="p-4 sm:p-6 pt-0">
+          </CardContent>
+        </div>
+        <CardFooter className="p-4 sm:p-6 pt-0 flex-shrink-0">
           <Button asChild className="w-full group/btn text-sm sm:text-base">
             <Link href={`/events/${event.id}`}>
               View Details

@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { motion } from "framer-motion";
 import { createClient } from "@/lib/supabase/client";
 import { fetchAllRows, getAccurateCount } from "@/lib/supabase-helpers";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -264,11 +263,7 @@ export default function EventDetailsPage() {
 
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16 py-12">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-      >
+      <div>
         {/* Event Image */}
         {event.image_url && (
           <div className="relative mb-8 h-64 sm:h-80 lg:h-96 w-full overflow-hidden rounded-lg">
@@ -362,11 +357,7 @@ export default function EventDetailsPage() {
 
         {/* Countdown Timer (for running events) */}
         {event.status === "running" && timeRemaining && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="mb-8"
-          >
+          <div className="mb-8">
             <Card className="border-primary/50 bg-primary/5">
               <CardContent className="flex items-center justify-center gap-4 py-6">
                 <Clock className="h-6 w-6 text-primary" />
@@ -376,7 +367,7 @@ export default function EventDetailsPage() {
                 </div>
               </CardContent>
             </Card>
-          </motion.div>
+          </div>
         )}
 
         {/* Join Button */}
@@ -437,22 +428,16 @@ export default function EventDetailsPage() {
           <h2 className="mb-6 text-2xl font-semibold">Prizes</h2>
           {prizes.length > 0 ? (
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {prizes.map((prize, index) => (
-                <motion.div
-                  key={prize.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
-                  whileHover={{ y: -4 }}
-                >
-                  <Card className="group h-full overflow-hidden transition-all hover:shadow-lg">
+              {prizes.map((prize) => (
+                <div key={prize.id}>
+                  <Card className="group h-full overflow-hidden">
                     {prize.image_url && (
                       <div className="relative h-48 w-full overflow-hidden bg-muted">
                         <Image
                           src={prize.image_url}
                           alt={prize.name}
                           fill
-                          className="object-cover transition-transform group-hover:scale-110"
+                          className="object-cover"
                         />
                       </div>
                     )}
@@ -470,7 +455,7 @@ export default function EventDetailsPage() {
                       )}
                     </CardHeader>
                   </Card>
-                </motion.div>
+                </div>
               ))}
             </div>
           ) : (
@@ -481,7 +466,7 @@ export default function EventDetailsPage() {
             </Card>
           )}
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }

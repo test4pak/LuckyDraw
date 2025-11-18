@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
 import { createClient } from "@/lib/supabase/client";
 import { fetchAllRows } from "@/lib/supabase-helpers";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -145,11 +144,7 @@ export default function DashboardPage() {
 
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16 py-12">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-      >
+      <div>
         <h1 className="mb-8 text-3xl font-bold tracking-tight sm:text-4xl">
           Dashboard
         </h1>
@@ -190,22 +185,16 @@ export default function DashboardPage() {
           <h2 className="mb-6 text-2xl font-semibold">My Events</h2>
           {participatedEvents.length > 0 ? (
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {participatedEvents.map((participant, index) => (
-                <motion.div
-                  key={participant.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
-                  whileHover={{ y: -4 }}
-                >
-                  <Card className="group h-full overflow-hidden transition-all hover:shadow-lg">
+              {participatedEvents.map((participant) => (
+                <div key={participant.id}>
+                  <Card className="group h-full overflow-hidden">
                     {participant.events.image_url && (
                       <div className="relative h-48 w-full overflow-hidden bg-muted">
                         <Image
                           src={participant.events.image_url}
                           alt={participant.events.title}
                           fill
-                          className="object-cover transition-transform group-hover:scale-110"
+                          className="object-cover"
                         />
                       </div>
                     )}
@@ -241,7 +230,7 @@ export default function DashboardPage() {
                       </Button>
                     </CardContent>
                   </Card>
-                </motion.div>
+                </div>
               ))}
             </div>
           ) : (
@@ -262,7 +251,7 @@ export default function DashboardPage() {
             </Card>
           )}
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }

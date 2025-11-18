@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -115,13 +114,8 @@ export function EventsSection() {
   }, [supabase]);
 
   const EventCard = ({ event }: { event: Event }) => (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.3 }}
-    >
-      <Card className="group h-full overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-primary/40 hover:glow-primary border-2 border-border/50 bg-gradient-to-br from-card/95 via-card/85 to-card/70 backdrop-blur-2xl glass-dark perspective-1000" style={{ transformStyle: "preserve-3d" }}>
+    <div>
+      <Card className="group h-full overflow-hidden border-2 border-border/50 bg-gradient-to-br from-card/95 via-card/85 to-card/70 backdrop-blur-2xl glass-dark">
         {event.image_url && (
           <div className="relative h-40 sm:h-48 w-full overflow-hidden bg-muted">
             <Image
@@ -185,27 +179,21 @@ export function EventsSection() {
           </Button>
         </CardFooter>
       </Card>
-    </motion.div>
+    </div>
   );
 
   return (
     <section id="events" className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16 py-16 md:py-24 relative overflow-hidden">
       {/* Background gradient mesh */}
       <div className="absolute inset-0 gradient-mesh opacity-40" />
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.6 }}
-        className="mb-12 text-center relative z-10"
-      >
+      <div className="mb-12 text-center relative z-10">
         <h2 className="mb-4 text-2xl font-bold tracking-tight sm:text-3xl md:text-4xl lg:text-5xl bg-gradient-to-r from-foreground via-primary to-purple-600 bg-clip-text text-transparent">
           Lucky Draw Events
         </h2>
         <p className="mx-auto max-w-2xl text-sm text-muted-foreground sm:text-base md:text-lg px-4">
           Join our exciting events and win amazing prizes
         </p>
-      </motion.div>
+      </div>
 
       {loading ? (
         <div className="flex justify-center py-12">

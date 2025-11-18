@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -102,26 +101,19 @@ export function Navbar() {
   };
 
   return (
-    <motion.nav
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="sticky top-0 z-50 w-full border-b border-border/50 glass-dark shadow-2xl shadow-black/10"
-    >
+    <nav className="sticky top-0 z-50 w-full border-b border-border/50 glass-dark shadow-2xl shadow-black/10">
       <div className="w-full flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16">
         <Link href="/" className="flex items-center space-x-2">
           <Gift className="h-6 w-6 text-primary" />
-          <motion.span 
-            className="text-lg sm:text-xl font-bold bg-gradient-to-r from-primary via-blue-400 to-purple-600 bg-clip-text text-transparent"
-          >
+          <span className="text-lg sm:text-xl font-bold bg-gradient-to-r from-primary via-blue-400 to-purple-600 bg-clip-text text-transparent">
             <span className="hidden sm:inline">LuckyDraw.pk</span>
             <span className="sm:hidden">LuckyDraw</span>
-          </motion.span>
+          </span>
         </Link>
 
         <div className="flex items-center space-x-4">
           {loading ? (
-            <div className="h-8 w-8 animate-pulse rounded-full bg-muted" />
+            <div className="h-8 w-8 rounded-full bg-muted" />
           ) : user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -160,8 +152,8 @@ export function Navbar() {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <motion.div>
-              <Button onClick={handleFacebookLogin} className="gap-1.5 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 border border-primary/30 shadow-lg shadow-primary/20 hover:glow-primary">
+            <div>
+              <Button onClick={handleFacebookLogin} className="gap-1.5 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 border border-primary/30 shadow-lg shadow-primary/20">
                 {!hasLoginDataSaved && (
                   <svg
                     className="h-3 w-3 sm:h-4 sm:w-4"
@@ -179,7 +171,7 @@ export function Navbar() {
                 <span className="hidden sm:inline">{hasLoginDataSaved ? "Continue without Facebook" : "Login with Facebook"}</span>
                 <span className="sm:hidden">{hasLoginDataSaved ? "Continue" : "Login"}</span>
               </Button>
-            </motion.div>
+            </div>
           )}
         </div>
       </div>
@@ -198,7 +190,7 @@ export function Navbar() {
         isOpen={isContinueModalOpen}
         onClose={() => setIsContinueModalOpen(false)}
       />
-    </motion.nav>
+    </nav>
   );
 }
 

@@ -379,7 +379,7 @@ export default function EventDetailsPage() {
                 <CardContent className="flex items-center gap-4 py-6">
                   <CheckCircle2 className="h-6 w-6 text-green-500" />
                   <div>
-                    <p className="font-semibold">You're in!</p>
+                    <p className="font-semibold">You&apos;re in!</p>
                     <p className="text-sm text-muted-foreground">
                       You have successfully joined this event. Good luck!
                     </p>

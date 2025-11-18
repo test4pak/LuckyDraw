@@ -52,13 +52,6 @@ export function ContinueWithoutFacebookModal({ isOpen, onClose }: ContinueWithou
   const [selectedEvent, setSelectedEvent] = useState<string | null>(null);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
-  // Fetch active events
-  useEffect(() => {
-    if (isOpen && step >= 2) {
-      fetchActiveEvents();
-    }
-  }, [isOpen, step]);
-
   const fetchActiveEvents = async () => {
     try {
       const data = await fetchAllRows(
@@ -77,6 +70,14 @@ export function ContinueWithoutFacebookModal({ isOpen, onClose }: ContinueWithou
         // Error fetching events
       }
   };
+
+  // Fetch active events
+  useEffect(() => {
+    if (isOpen && step >= 2) {
+      fetchActiveEvents();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, step]);
 
   const validateStep1 = (): boolean => {
     const newErrors: { [key: string]: string } = {};

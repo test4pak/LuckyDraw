@@ -38,10 +38,6 @@ export default function AdminPage() {
   const router = useRouter();
   const { toast } = useToast();
 
-  useEffect(() => {
-    fetchEvents();
-  }, []);
-
   const fetchEvents = async () => {
     try {
       setLoading(true);
@@ -86,6 +82,11 @@ export default function AdminPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchEvents();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleDeleteEvent = async (eventId: string, eventTitle: string) => {
     if (!confirm(`Are you sure you want to delete "${eventTitle}"? This will also delete all associated prizes and participants.`)) {

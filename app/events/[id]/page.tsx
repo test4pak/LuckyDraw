@@ -37,7 +37,6 @@ type Prize = {
 export default function EventDetailsPage() {
   const params = useParams();
   const router = useRouter();
-  const supabase = createClient();
   const { toast } = useToast();
   const [event, setEvent] = useState<Event | null>(null);
   const [prizes, setPrizes] = useState<Prize[]>([]);
@@ -48,6 +47,10 @@ export default function EventDetailsPage() {
 
   useEffect(() => {
     const fetchEvent = async () => {
+      // Only fetch in browser environment
+      if (typeof window === 'undefined') return;
+      
+      const supabase = createClient();
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -120,7 +123,7 @@ export default function EventDetailsPage() {
     };
 
     fetchEvent();
-  }, [params.id, supabase, router]);
+  }, [params.id, router]);
 
   useEffect(() => {
     if (!event || event.status !== "running") return;
@@ -153,6 +156,9 @@ export default function EventDetailsPage() {
   }, [event]);
 
   const handleJoinEvent = async () => {
+    if (typeof window === 'undefined') return;
+    
+    const supabase = createClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();

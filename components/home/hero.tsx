@@ -39,7 +39,6 @@ type EventCard = {
 };
 
 export function Hero() {
-  const supabase = createClient();
   const router = useRouter();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState(0);
@@ -57,6 +56,10 @@ export function Hero() {
   // Fetch events and stats from database
   useEffect(() => {
     const fetchData = async () => {
+      // Only fetch in browser environment
+      if (typeof window === 'undefined') return;
+      
+      const supabase = createClient();
       try {
         // Fetch running events with images
         const { data: eventsData, error: eventsError } = await supabase
@@ -165,7 +168,7 @@ export function Hero() {
     };
 
     fetchData();
-  }, [supabase]);
+  }, []);
 
   useEffect(() => {
     if (eventCards.length === 0) return;

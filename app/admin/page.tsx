@@ -36,11 +36,14 @@ export default function AdminPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const [managingPrizesEvent, setManagingPrizesEvent] = useState<Event | null>(null);
-  const supabase = createClient();
   const router = useRouter();
   const { toast } = useToast();
 
   const fetchEvents = async () => {
+    // Only fetch in browser environment
+    if (typeof window === 'undefined') return;
+    
+    const supabase = createClient();
     try {
       setLoading(true);
       const eventsData = await fetchAllRows(
@@ -95,6 +98,9 @@ export default function AdminPage() {
       return;
     }
 
+    if (typeof window === 'undefined') return;
+    
+    const supabase = createClient();
     try {
       const { error } = await supabase.from("events").delete().eq("id", eventId);
 

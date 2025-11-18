@@ -44,10 +44,12 @@ export default function DashboardPage() {
   const [participatedEvents, setParticipatedEvents] = useState<ParticipantEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
-  const supabase = createClient();
-
   useEffect(() => {
     const fetchData = async () => {
+      // Only fetch in browser environment
+      if (typeof window === 'undefined') return;
+      
+      const supabase = createClient();
       const {
         data: { user: authUser },
       } = await supabase.auth.getUser();

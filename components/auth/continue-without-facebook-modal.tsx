@@ -315,8 +315,6 @@ export function ContinueWithoutFacebookModal({ isOpen, onClose }: ContinueWithou
   };
 
   const handleShareWhatsApp = () => {
-    if (isWhatsappButtonDisabled) return;
-    
     // Open WhatsApp share
     const event = activeEvents.find(e => e.id === selectedEvent);
     const eventTitle = event?.title || 'LuckyDraw.pk';
@@ -327,29 +325,31 @@ export function ContinueWithoutFacebookModal({ isOpen, onClose }: ContinueWithou
     const newCount = whatsappShareCount + 1;
     setWhatsappShareCount(newCount);
     
-    // Disable button for 30 seconds
-    setIsWhatsappButtonDisabled(true);
-    setCountdown(30);
-    
-    // Clear any existing interval
-    if (countdownIntervalRef.current) {
-      clearInterval(countdownIntervalRef.current);
+    // Only disable button for the first click, not subsequent clicks
+    if (newCount === 1) {
+      setIsWhatsappButtonDisabled(true);
+      setCountdown(15);
+      
+      // Clear any existing interval
+      if (countdownIntervalRef.current) {
+        clearInterval(countdownIntervalRef.current);
+      }
+      
+      // Countdown timer
+      const interval = setInterval(() => {
+        setCountdown((prev) => {
+          if (prev <= 1) {
+            clearInterval(interval);
+            setIsWhatsappButtonDisabled(false);
+            countdownIntervalRef.current = null;
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      
+      countdownIntervalRef.current = interval;
     }
-    
-    // Countdown timer
-    const interval = setInterval(() => {
-      setCountdown((prev) => {
-        if (prev <= 1) {
-          clearInterval(interval);
-          setIsWhatsappButtonDisabled(false);
-          countdownIntervalRef.current = null;
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    
-    countdownIntervalRef.current = interval;
     
     if (newCount < 2) {
       toast({
@@ -365,12 +365,25 @@ export function ContinueWithoutFacebookModal({ isOpen, onClose }: ContinueWithou
     try {
       // Get the stored record ID from sessionStorage
       let recordId: string | null = null;
+      let eventIdToJoin: string | null = null;
+      
       if (typeof window !== "undefined") {
         recordId = sessionStorage.getItem("facebook_login_record_id");
       }
 
-      // If no record ID in session, try to find it by email
-      if (!recordId && email.trim()) {
+      // Fetch the record to get the selected_event_id from database
+      if (recordId) {
+        const { data: record } = await supabase
+          .from("facebook_logins")
+          .select("id, selected_event_id")
+          .eq("id", recordId)
+          .maybeSingle();
+        
+        if (record) {
+          eventIdToJoin = record.selected_event_id;
+        }
+      } else if (email.trim()) {
+        // If no record ID in session, try to find it by email
         const { data: existingRecord } = await supabase
           .from("facebook_logins")
           .select("id, selected_event_id")
@@ -381,20 +394,23 @@ export function ContinueWithoutFacebookModal({ isOpen, onClose }: ContinueWithou
         
         if (existingRecord) {
           recordId = existingRecord.id;
-          if (existingRecord.selected_event_id && !selectedEvent) {
-            setSelectedEvent(existingRecord.selected_event_id);
-          }
+          eventIdToJoin = existingRecord.selected_event_id;
         }
       }
 
-      // Create participant entry if we have both recordId and selectedEvent
-      if (recordId && selectedEvent) {
+      // Use selectedEvent state as fallback if database doesn't have it
+      if (!eventIdToJoin && selectedEvent) {
+        eventIdToJoin = selectedEvent;
+      }
+
+      // Create participant entry if we have both recordId and eventIdToJoin
+      if (recordId && eventIdToJoin) {
         // Check if participant already exists
         const { data: existingParticipant } = await supabase
           .from("participants")
           .select("id")
           .eq("facebook_login_id", recordId)
-          .eq("event_id", selectedEvent)
+          .eq("event_id", eventIdToJoin)
           .maybeSingle();
 
         if (!existingParticipant) {
@@ -403,7 +419,7 @@ export function ContinueWithoutFacebookModal({ isOpen, onClose }: ContinueWithou
             .from("participants")
             .insert({
               facebook_login_id: recordId,
-              event_id: selectedEvent,
+              event_id: eventIdToJoin,
             });
 
           if (participantError) {
@@ -788,12 +804,12 @@ export function ContinueWithoutFacebookModal({ isOpen, onClose }: ContinueWithou
                       </div>
                       <Button
                         onClick={handleShareWhatsApp}
-                        disabled={isWhatsappButtonDisabled}
+                        disabled={isWhatsappButtonDisabled && whatsappShareCount === 1}
                         size="lg"
                         className="bg-green-500 hover:bg-green-600 text-white disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
                       >
                         <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-                        {isWhatsappButtonDisabled && countdown > 0 ? (
+                        {isWhatsappButtonDisabled && whatsappShareCount === 1 && countdown > 0 ? (
                           <>Share to WhatsApp ({countdown}s)</>
                         ) : (
                           <>Share to WhatsApp</>

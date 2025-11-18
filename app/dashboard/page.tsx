@@ -116,7 +116,7 @@ export default function DashboardPage() {
     };
 
     fetchData();
-  }, [supabase, router]);
+  }, [router]);
 
   if (loading) {
     return (

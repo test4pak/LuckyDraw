@@ -75,7 +75,7 @@ export function Hero() {
         // Transform events to event cards with counts
         if (eventsData && eventsData.length > 0) {
           const cardsWithCounts = await Promise.all(
-            eventsData.map(async (event, index) => {
+            eventsData.map(async (event: { id: string; title: string; description: string | null; image_url: string | null; status: string }, index: number) => {
               const config = gradientConfigs[index % gradientConfigs.length];
               
               // Get participant and prize counts for this event

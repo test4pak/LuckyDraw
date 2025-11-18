@@ -38,3 +38,6 @@ next-env.d.ts
 # admin panel (separate repository)
 /admin-panel
 
+# GitHub token (keep secure)
+.github_token.txt
+
